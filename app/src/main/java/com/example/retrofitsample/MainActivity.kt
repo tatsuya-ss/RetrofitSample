@@ -11,11 +11,18 @@ import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 
+// 通信するクラス
+data class GitHub(val login: String,
+                  val name: String,
+                  val twitter_username: String)
+
 interface GitHubService {
-    @GET("users/tatsuya-ss/repos")
-    fun fetchRepositories(): Call<ResponseBody>  // ResponseBodyはokhttp3のものを使用
+    @GET("users/tatsuya-ss")
+    fun fetchRepositories(): Call<GitHub>  // GitHub型に変換して取得
+//    fun fetchRepositories(): Call<ResponseBody>  // ResponseBodyはokhttp3のものを使用
 }
 
 class MainActivity : AppCompatActivity() {
@@ -48,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         val retrofit = Retrofit.Builder().apply {
             // URLを設定したretrofitオブジェクトを生成
             baseUrl("https://api.github.com/")
+                .addConverterFactory(GsonConverterFactory.create())
         }.build()
         val service = retrofit.create(GitHubService::class.java)
         // interfaceで用意したメソッド
@@ -57,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             withContext(Dispatchers.IO) {
                 val responseBody = get.execute()
                 responseBody.body()?.let {
-                    println(it.string())
+                    println(it)
                 }
             }
             println("終了")
